@@ -46,8 +46,18 @@ class ChromeDrive:
     def __init__(self, chrome_path=default_chrome_path(), seckill_time=None, password=None):
         self.chrome_path = chrome_path
         self.seckill_time = seckill_time
-        self.seckill_time_obj = datetime.strptime(self.seckill_time, '%Y-%m-%d %H:%M:%S')
         self.password = password
+        
+        # 检查是否已经提供了秒杀时间
+        if self.seckill_time:
+            # 如果提供了秒杀时间，那么就将其转换为 datetime 对象
+            self.seckill_time_obj = datetime.strptime(self.seckill_time, '%Y-%m-%d %H:%M:%S')
+        else:
+            # 如果没有提供秒杀时间，那么就获取最近的下一个整点时间
+            now = datetime.now()
+            self.seckill_time_obj = now.replace(minute=0, second=0, microsecond=0)
+            if now > self.seckill_time_obj:
+                self.seckill_time_obj += timedelta(hours=1)
 
     def start_driver(self):
         try:
@@ -133,12 +143,12 @@ class ChromeDrive:
                 self.driver.find_element_by_id("J_Go").click()
                 print("已经点击结算按钮...")
                 click_submit_times = 0
-                while True:
+                while click_submit_times < 10:
                     try:
                         if click_submit_times < 10:
-                            if click_submit_times == 0:
-                                # 防止超时
-                                sleep(0.02)
+                            # if click_submit_times == 0:
+                                # 防止拥挤超时
+                                # sleep(0.25)
                             self.driver.find_element_by_link_text('提交订单').click()
                             print("已经点击提交订单按钮")
                             submit_succ = True
